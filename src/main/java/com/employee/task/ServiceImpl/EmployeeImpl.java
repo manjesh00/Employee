@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.employee.task.Dto.EmployeeDto;
 import com.employee.task.Dto.TaskDto;
@@ -18,6 +19,8 @@ import com.employee.task.exception.ResourceNotFoundException;
 public class EmployeeImpl implements EmployeeService{
 	@Autowired
 	private ModelMapper modelMapper;
+	@Autowired
+	private PasswordEncoder passwordEncode;
     @Autowired
 	private EmplRepo empRepo;
     @Autowired
@@ -26,6 +29,7 @@ public class EmployeeImpl implements EmployeeService{
 	@Override
 	public EmployeeDto createEmpl(EmployeeDto employDto) {
 	     Employee empl=this.modelMapper.map(employDto, Employee.class);
+	     empl.setPassword(this.passwordEncode.encode(employDto.getPassword()));
 	     Employee saved=this.empRepo.saveAndFlush(empl);
 		return this.modelMapper.map(saved, EmployeeDto.class);
 	}
@@ -33,8 +37,8 @@ public class EmployeeImpl implements EmployeeService{
 	@Override
 	public EmployeeDto updateEmpl(EmployeeDto employDto, Integer empId) {
 		Employee empl=this.empRepo.findById(empId).orElseThrow(()->new ResourceNotFoundException("Employee", "EmployeeId", empId));
-		if(employDto.getUsername()!=null) {
-		empl.setUsername(employDto.getUsername());
+		if(employDto.getEmail()!=null) {
+		empl.setEmail(employDto.getEmail());
 		}
 		if(employDto.getAddress()!=null) {
 		empl.setAddress(employDto.getAddress());
