@@ -18,6 +18,7 @@ public interface EmployeeService {
 	List<EmployeeDto>getAll();
 	List<TaskDto>getAllTask(Integer id);
 	EmployeeDto Enrolltask(Integer eid,Integer tid);
+	EmployeeDto forgetPassword(String Email , String numb,String newPass);
 	
 	
 

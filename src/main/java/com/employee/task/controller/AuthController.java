@@ -8,6 +8,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +23,7 @@ import com.employee.task.security.JwtTokenHelper;
 
 
 @RestController
-@RequestMapping("/api/auth/")
+@RequestMapping("/api/auth")
 public class AuthController {
 	@Autowired
 	private JwtTokenHelper jwtTokenHelper;
@@ -56,5 +57,12 @@ public class AuthController {
 		EmployeeDto emp=this.empser.createEmpl(emploDto);
 		return new ResponseEntity<EmployeeDto>(emp,HttpStatus.CREATED);
 	}
+	
+	@PostMapping("/reset/{email}/{numb}/{word}")
+	public ResponseEntity<EmployeeDto>resetPassword(@PathVariable String email,@PathVariable String numb,@PathVariable String word){
+		EmployeeDto emps=this.empser.forgetPassword(email, numb, word);
+		return ResponseEntity.ok(emps);
+	}
+	
 
 }

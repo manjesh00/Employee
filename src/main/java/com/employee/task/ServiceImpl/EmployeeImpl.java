@@ -89,4 +89,14 @@ public class EmployeeImpl implements EmployeeService{
 		return this.modelMapper.map(empl, EmployeeDto.class);
 	}
 
+	@Override
+	public EmployeeDto forgetPassword(String Email, String numb,String newPass) {
+		Employee emp=this.empRepo.findByEmail(Email).orElseThrow(()->new ResourceNotFoundException("Employee", "emailID", 0));
+		if(emp.getPhone().equals(numb)) {
+			emp.setPassword(this.passwordEncode.encode(newPass));	
+		}
+		Employee savePas=this.empRepo.saveAndFlush(emp);
+		return this.modelMapper.map(savePas, EmployeeDto.class);
+	}
+
 }
