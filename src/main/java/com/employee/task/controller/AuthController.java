@@ -1,6 +1,9 @@
 package com.employee.task.controller;
 
+import java.io.UnsupportedEncodingException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -8,6 +11,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,11 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.employee.task.Dto.EmployeeDto;
 import com.employee.task.Service.EmployeeService;
+import com.employee.task.entity.Employee;
 import com.employee.task.exception.ApiException;
 import com.employee.task.payload.JwtAuthRequest;
 import com.employee.task.payload.JwtAuthResponse;
 import com.employee.task.security.JwtTokenHelper;
 
+import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,7 +39,7 @@ public class AuthController {
 	@Autowired
 	private AuthenticationManager authenticationManager;
 	@Autowired
-	private EmployeeService empser;
+	private EmployeeService employeeService;
 	
 	@PostMapping("/login")
 	public ResponseEntity<JwtAuthResponse>createToken(@RequestBody JwtAuthRequest request) throws Exception{
@@ -52,17 +59,34 @@ public class AuthController {
 			throw new ApiException("Invalid username or Password");
 		}	
 	}
-	@PostMapping("/register")
-	public ResponseEntity<EmployeeDto>create(@RequestBody EmployeeDto emploDto){
-		EmployeeDto emp=this.empser.createEmpl(emploDto);
-		return new ResponseEntity<EmployeeDto>(emp,HttpStatus.CREATED);
-	}
 	
 	@PostMapping("/reset/{email}/{numb}/{word}")
 	public ResponseEntity<EmployeeDto>resetPassword(@PathVariable String email,@PathVariable String numb,@PathVariable String word){
-		EmployeeDto emps=this.empser.forgetPassword(email, numb, word);
+		EmployeeDto emps=this.employeeService.forgetPassword(email, numb, word);
 		return ResponseEntity.ok(emps);
 	}
-	
+	 @PostMapping("/register")
+	    public String processRegister(@RequestBody Employee employee,HttpServletRequest request) throws UnsupportedEncodingException,MessagingException{
+		 employeeService.register(employee,getSiteURL(request));
+		return "Register Successfull";
+	}
+	 private String getSiteURL(HttpServletRequest request) {
+	        String siteURL = request.getRequestURL().toString();
+	        return siteURL.replace(request.getServletPath(), "");
+	    }
+	 @GetMapping("/verify")
+	 public String verifyEmployee(@Param("code") String code) {
+		 if(employeeService.verify(code)) {
+			 return "Verify sucessfully";
+		 }else {
+			 return "verify denied";
+		 }
+	 }
 
 }
+
+
+
+
+
+

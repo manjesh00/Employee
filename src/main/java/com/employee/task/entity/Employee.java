@@ -34,7 +34,13 @@ public class Employee  implements UserDetails{
 	
 	private String phone;
 	
+	private String fullName;
+	
+	private boolean isStatus;
+	
 	private String password;
+	
+	private String verificationCode;
 	
 	private String address;
 	
@@ -80,7 +86,7 @@ public class Employee  implements UserDetails{
 	@Override
 	public boolean isEnabled() {
 		// TODO Auto-generated method stub
-		return true;
+		return isStatus();
 	}
 	@Override
 	public String getUsername() {

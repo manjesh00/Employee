@@ -29,7 +29,8 @@ public class TaskImpl implements TaskService{
 	}
 
 	@Override
-	public TaskDto  update(TaskDto taskDto, Integer id) {
+	public TaskDto  update(TaskDto taskDtos, Integer id) {
+		Task taskDto=this.modelMapper.map(taskDtos, Task.class);
 		Task task=this.taskrepo.findById(id).orElseThrow(()->new ResourceNotFoundException("Task", "TaskId", id));
 		if(taskDto.getName()!=null) {
 			task.setName(taskDto.getName());

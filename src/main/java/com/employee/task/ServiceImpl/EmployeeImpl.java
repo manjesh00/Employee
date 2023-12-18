@@ -1,9 +1,13 @@
 package com.employee.task.ServiceImpl;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.internal.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.employee.task.Dto.EmployeeDto;
@@ -15,6 +19,9 @@ import com.employee.task.entity.Employee;
 import com.employee.task.entity.Task;
 import com.employee.task.exception.ResourceNotFoundException;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+
 @Service
 public class EmployeeImpl implements EmployeeService{
 	@Autowired
@@ -25,6 +32,9 @@ public class EmployeeImpl implements EmployeeService{
 	private EmplRepo empRepo;
     @Autowired
     private TaskRepo taskRepo;
+    
+    @Autowired
+    private JavaMailSender mailSender;
     
 	@Override
 	public EmployeeDto createEmpl(EmployeeDto employDto) {
@@ -99,4 +109,69 @@ public class EmployeeImpl implements EmployeeService{
 		return this.modelMapper.map(savePas, EmployeeDto.class);
 	}
 
+	@Override
+	public void register(Employee employee, String siteURL) throws UnsupportedEncodingException,MessagingException{
+		employee.setPassword(passwordEncode.encode(employee.getPassword()));
+		employee.setVerificationCode(RandomString.make(64));
+		employee.setStatus(false);
+		Employee registerEmployee=this.empRepo.save(employee);
+		sendVerification(registerEmployee, siteURL);
+	}
+
+	@Override
+	public void sendVerification(Employee employee, String siteURL) throws MessagingException, UnsupportedEncodingException{
+		String toAddress=employee.getEmail();
+		String fromAddress="rayamajhimanjesh41@gmail.com";
+		String senderName="Employee Management System";
+		String subject="Please verify your email";
+		String content="Dear "+employee.getFullName()+"<br>"
+		                +"Please click the link below to verify your registration:<br>"
+		                + "<h3><a href=\"[[URL]]\" target=\"_self\">VERIFY</a></h3>"
+		                + "Thank you,<br>"
+		                + "Employee Management.";
+		
+		MimeMessage message=mailSender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(message);
+	     
+	    helper.setFrom(fromAddress, senderName);
+	    helper.setTo(toAddress);
+	    helper.setSubject(subject);
+	     
+	    content = content.replace("[[name]]", employee.getUsername());
+	    String verifyURL = siteURL + "/verify?code=" + employee.getVerificationCode();
+	     
+	    content = content.replace("[[URL]]", verifyURL);
+	     
+	    helper.setText(content, true);
+	     
+	    mailSender.send(message);
+	}
+
+	@Override
+	public boolean verify(String code) {
+		Employee employee =this.empRepo.findByVerificationCode(code);
+		if(employee==null) {
+			return false;
+		}else {
+			employee.setVerificationCode(null);
+			employee.setStatus(true);
+			this.empRepo.save(employee);
+			
+			return true;
+		}
+		
+	}
+
 }
+
+
+
+
+
+
+
+
+
+
+
+

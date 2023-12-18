@@ -15,4 +15,7 @@ public interface EmplRepo extends JpaRepository<Employee, Integer> {
 	
 	@Query("SELECT e FROM Employee e WHERE e.email=:Eemail")
 	Optional<Employee> findByEmail(String Eemail);
+
+	@Query("SELECT e FROM Employee e WHERE e.verificationCode=:code")
+    Employee findByVerificationCode(String code);
 }
